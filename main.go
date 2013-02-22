@@ -25,6 +25,11 @@ func main() {
 		return
 	}
 
+	if *client == false && *server == false {
+		flag.Usage()
+		return
+	}
+
 	addr := net.ParseIP(*ip_address)
 	if addr == nil {
 		log.Fatalln("Unable to parse IP. IP Provided was", *ip_address)
