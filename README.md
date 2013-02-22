@@ -6,7 +6,7 @@ This is a program like STunnel but written in Go. Most of the code is derived fr
 
 Usage
 ====
-
+```
 Usage of ./go-tunnel:
   -client=false: You are tunneling connections to a server
   -create-cert=false: Create Public and Private PEM
@@ -17,3 +17,5 @@ Usage of ./go-tunnel:
   -remote-ip-address="127.0.0.1": Please attach a valid IP address
   -remote-port="1234": The port you wish to use
   -server=false: You are accepting TLS connections from other hosts
+  ```
+  
