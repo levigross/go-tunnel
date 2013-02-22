@@ -31,27 +31,41 @@ func ServeTLSConnections(public_key, private_key, service string) net.Listener {
 	return listener
 }
 
+func GetConnection(remoteServerIPandPort string, secure bool) net.Conn {
+	if secure {
+		cert, err := tls.LoadX509KeyPair("public.pem", "private.pem")
+		checkError(err)
+
+		config := tls.Config{Certificates: []tls.Certificate{cert}}
+
+		now := time.Now()
+		config.Time = func() time.Time { return now }
+		config.Rand = rand.Reader
+		config.InsecureSkipVerify = true
+
+		server_conn, err := tls.Dial("tcp", remoteServerIPandPort, &config)
+		checkError(err)
+		return server_conn
+	}
+	server_conn, err := net.Dial("tcp", remoteServerIPandPort)
+	checkError(err)
+	return server_conn
+
+}
+
 func handleClient(conn net.Conn, remoteServerIPandPort string, secure bool) {
 	defer conn.Close()
 
+	server_conn := GetConnection(remoteServerIPandPort, secure)
+	defer server_conn.Close()
+
 	var buf [512]byte
-	var server_conn net.Conn
-	if secure {
-		server_conn, err := tls.Dial("tcp", remoteServerIPandPort, &tls.Config{InsecureSkipVerify: false})
-		checkError(err)
-		defer server_conn.Close()
-	} else {
-		server_conn, err := net.Dial("tcp", remoteServerIPandPort)
-		checkError(err)
-		defer server_conn.Close()
-	}
 
 	for {
-		log.Println("Trying to read")
 		n, err := conn.Read(buf[0:])
 		if err != nil {
 			log.Println(err)
-			continue
+			return
 		}
 		_, err2 := server_conn.Write(buf[0:n])
 		if err2 != nil {
