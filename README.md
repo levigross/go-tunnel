@@ -6,6 +6,7 @@ This is a program like STunnel but written in Go. Most of the code is derived fr
 
 Usage
 ====
+
 Usage of ./go-tunnel:
   -client=false: You are tunneling connections to a server
   -create-cert=false: Create Public and Private PEM
