@@ -1,5 +1,6 @@
 #!/bin/sh
-go build
+rm GoTunnel # Cleanup
+go build || exit
 BIN_NAME="$(basename `pwd` )"
 ./$BIN_NAME --client &
 ./$BIN_NAME --server --port=1234 --remote-port=9000 &
