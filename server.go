@@ -10,14 +10,14 @@ import (
 
 func ServeTCPConnections(service string) net.Listener {
 	listener, err := net.Listen("tcp", service)
-	checkError(err)
+	checkError(err, true)
 	log.Println("Listening for TCP connections on", service)
 	return listener
 }
 
 func ServeTLSConnections(public_key, private_key, service string) net.Listener {
 	cert, err := tls.LoadX509KeyPair(public_key, private_key)
-	checkError(err)
+	checkError(err, true)
 
 	config := tls.Config{Certificates: []tls.Certificate{cert}}
 
@@ -26,29 +26,27 @@ func ServeTLSConnections(public_key, private_key, service string) net.Listener {
 	config.Rand = rand.Reader
 
 	listener, err := tls.Listen("tcp", service, &config)
-	checkError(err)
+	checkError(err, true)
 	log.Println("Listening for TLS connections on", service)
 	return listener
 }
 
 func GetConnection(remoteServerIPandPort string, secure bool) net.Conn {
-	if secure {
-		cert, err := tls.LoadX509KeyPair("public.pem", "private.pem")
-		checkError(err)
 
-		config := tls.Config{Certificates: []tls.Certificate{cert}}
-
-		now := time.Now()
-		config.Time = func() time.Time { return now }
-		config.Rand = rand.Reader
-		config.InsecureSkipVerify = true
-
-		server_conn, err := tls.Dial("tcp", remoteServerIPandPort, &config)
-		checkError(err)
+	if !secure {
+		server_conn, err := net.Dial("tcp", remoteServerIPandPort)
+		checkError(err, true)
 		return server_conn
 	}
-	server_conn, err := net.Dial("tcp", remoteServerIPandPort)
-	checkError(err)
+
+	cert, err := tls.LoadX509KeyPair("public.pem", "private.pem")
+	checkError(err, true)
+
+	config := tls.Config{Certificates: []tls.Certificate{cert}, Time: func() time.Time { return time.Now() },
+		Rand: rand.Reader, InsecureSkipVerify: true}
+
+	server_conn, err := tls.Dial("tcp", remoteServerIPandPort, &config)
+	checkError(err, true)
 	return server_conn
 
 }

@@ -19,9 +19,14 @@ var (
 )
 
 func main() {
+
+	var listener net.Listener
+	var secure bool
 	flag.Parse()
+
 	if *create_cert {
 		CreateEncryptionKeys()
+		log.Println("TLS Certs Created")
 		return
 	}
 
@@ -30,20 +35,15 @@ func main() {
 		return
 	}
 
-	addr := net.ParseIP(*ip_address)
-	if addr == nil {
+	if addr := net.ParseIP(*ip_address); addr == nil {
 		log.Fatalln("Unable to parse IP. IP Provided was", *ip_address)
 	}
 	service := *ip_address + ":" + *port
 
-	raddr := net.ParseIP(*remote_ip_address)
-	if raddr == nil {
+	if raddr := net.ParseIP(*remote_ip_address); raddr == nil {
 		log.Fatalln("Unable to parse IP. IP Provided was", *remote_ip_address)
 	}
 	RemoteIPandPort := *remote_ip_address + ":" + *remote_port
-
-	var listener net.Listener
-	var secure bool
 
 	if *server {
 		listener = ServeTLSConnections(*public_key, *private_key, service)

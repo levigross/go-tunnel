@@ -2,8 +2,13 @@ package main
 
 import "log"
 
-func checkError(err error) {
+func checkError(err error, fatal bool) {
 	if err != nil {
-		log.Fatalln("Fatal error ", err.Error())
+		if fatal {
+			log.Fatalln("Fatal error:", err.Error())
+		} else {
+			log.Println("Error:", err.Error())
+		}
+
 	}
 }

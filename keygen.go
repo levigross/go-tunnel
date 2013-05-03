@@ -20,9 +20,8 @@ func CreateEncryptionKeys() {
 }
 
 func CreateTLSCerts() {
-	random := rand.Reader
-
 	var key rsa.PrivateKey
+
 	loadGobKey("private.key", &key)
 
 	now := time.Now()
@@ -30,8 +29,8 @@ func CreateTLSCerts() {
 	template := x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
-			CommonName:   "jan.newmarch.name",
-			Organization: []string{"Jan Newmarch"},
+			CommonName:   "localhost",
+			Organization: []string{"Levi Gross"},
 		},
 		NotBefore: now,
 		NotAfter:  then,
@@ -41,53 +40,50 @@ func CreateTLSCerts() {
 
 		BasicConstraintsValid: true,
 		IsCA:                  true,
-		DNSNames:              []string{"jan.newmarch.name", "localhost"},
+		DNSNames:              []string{"levigross.com", "localhost"},
 	}
-	theBytes, err := x509.CreateCertificate(random, &template,
+	theBytes, err := x509.CreateCertificate(rand.Reader, &template,
 		&template, &key.PublicKey, &key)
-	checkError(err)
+	checkError(err, true)
 
 	certPEMFile, err := os.Create("public.pem")
-	checkError(err)
+	checkError(err, true)
 	pem.Encode(certPEMFile, &pem.Block{Type: "CERTIFICATE", Bytes: theBytes})
 	certPEMFile.Close()
 
 	keyPEMFile, err := os.Create("private.pem")
-	checkError(err)
+	checkError(err, true)
 	pem.Encode(keyPEMFile, &pem.Block{Type: "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(&key)})
 	keyPEMFile.Close()
 }
 
 func CreateRSAKey() {
-	reader := rand.Reader
-	bitSize := 4092
-	key, err := rsa.GenerateKey(reader, bitSize)
-	checkError(err)
+	key, err := rsa.GenerateKey(rand.Reader, 4092)
+	checkError(err, true)
 	log.Println("Private key primes", key.Primes[0].String(), key.Primes[1].String())
 	log.Println("Private key exponent", key.D.String())
 
-	publicKey := key.PublicKey
-	log.Println("Public key modulus", publicKey.N.String())
-	log.Println("Public key exponent", publicKey.E)
+	log.Println("Public key modulus", key.PublicKey.N.String())
+	log.Println("Public key exponent", key.PublicKey.E)
 
 	saveGobKey("private.key", key)
 }
 
 func saveGobKey(fileName string, key interface{}) {
 	outFile, err := os.Create(fileName)
-	checkError(err)
+	checkError(err, true)
 	encoder := gob.NewEncoder(outFile)
 	err = encoder.Encode(key)
-	checkError(err)
+	checkError(err, true)
 	outFile.Close()
 }
 
 func loadGobKey(fileName string, key interface{}) {
 	inFile, err := os.Open(fileName)
-	checkError(err)
+	checkError(err, true)
 	decoder := gob.NewDecoder(inFile)
 	err = decoder.Decode(key)
-	checkError(err)
+	checkError(err, true)
 	inFile.Close()
 }
